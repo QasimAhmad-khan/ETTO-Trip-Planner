@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 
 import requests
 from django.core.cache import cache
@@ -33,6 +34,20 @@ def _matches_location_suffix(query, properties):
     return suffix in matches
 
 
+def _matches_location_name(query, properties):
+    """Reject a loose geocoder fallback to an unrelated US place."""
+    requested = query.split(",", 1)[0].strip().casefold()
+    requested = re.sub(r"[^a-z0-9]+", " ", requested).strip()
+    requested = re.sub(r"^(st|ft|mt)\b", lambda match: {"st": "saint", "ft": "fort", "mt": "mount"}[match[0]], requested)
+    if not requested:
+        return False
+    for field in ("label", "name"):
+        resolved = re.sub(r"[^a-z0-9]+", " ", str(properties.get(field, "")).casefold()).strip()
+        if requested in resolved:
+            return True
+    return False
+
+
 def _key(kind):
     return os.environ.get(f"ORS_{kind}_API_KEY") or os.environ.get("ORS_API_KEY")
 
@@ -60,7 +75,8 @@ def geocode_us(query):
         properties = feature.get("properties", {})
         coordinates = feature.get("geometry", {}).get("coordinates", [])
         if (str(properties.get("country_a", "")).upper() == "USA"
-                and len(coordinates) >= 2 and _matches_location_suffix(normalized, properties)):
+                and len(coordinates) >= 2 and _matches_location_suffix(normalized, properties)
+                and _matches_location_name(normalized, properties)):
             result = {"label": properties.get("label", normalized), "coordinates": coordinates[:2]}
             cache.set(cache_key, result, 86400)
             return result

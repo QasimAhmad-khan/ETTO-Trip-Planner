@@ -144,6 +144,15 @@ class ProviderCallTests(SimpleTestCase):
             geocode_us("Toronto, ON")
 
     @patch("trips.services.fuel_routing._request")
+    def test_unrelated_geocoder_fallback_is_rejected(self, request):
+        request.return_value = {"features": [{
+            "properties": {"country_a": "USA", "region_a": "TX", "label": "North, Arlington, TX, USA"},
+            "geometry": {"coordinates": [-97.11, 32.79]},
+        }]}
+        with self.assertRaises(FuelLocationError):
+            geocode_us("zzzz-not-a-place, TX")
+
+    @patch("trips.services.fuel_routing._request")
     def test_directions_uses_one_route_call(self, request):
         request.return_value = {"features": [{"geometry": {"coordinates": [[-100, 40], [-99, 40]]},
                                                "properties": {"summary": {"distance": 100000}}}]}
