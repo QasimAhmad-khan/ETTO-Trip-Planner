@@ -86,7 +86,7 @@ export default function FuelPlanner() {
               <Marker position={[result.finish.coordinates[1], result.finish.coordinates[0]]} icon={finishIcon}>
                 <Popup>Finish: {result.finish.label}</Popup></Marker>
               {stops.map((stop) => <Marker key={stop.station_id} position={[stop.coordinates[1], stop.coordinates[0]]} icon={fuelIcon}>
-                <Popup><strong>{stop.name}</strong><br />{stop.city}, {stop.state}<br />${stop.price_per_gallon_usd}/gal · {stop.gallons} gal</Popup>
+                <Popup><strong>{stop.name}</strong><br />{stop.city}, {stop.state}<br />${Number(stop.price_per_gallon_usd).toFixed(3)}/gal · {stop.gallons} gal</Popup>
               </Marker>)}
             </MapContainer>
           </div>
@@ -96,7 +96,7 @@ export default function FuelPlanner() {
               <span className="fuel-stop-number">{index + 1}</span>
               <div><strong>{stop.name}</strong><div>{stop.city}, {stop.state} · mile {stop.mile_marker}</div>
                 <small>{stop.address} · approx. {stop.distance_from_route_miles} mi from route</small></div>
-              <div className="fuel-stop-cost"><strong>${stop.cost_usd}</strong><div>{stop.gallons} gal @ ${stop.price_per_gallon_usd}</div></div>
+              <div className="fuel-stop-cost"><strong>${stop.cost_usd}</strong><div>{stop.gallons} gal @ ${Number(stop.price_per_gallon_usd).toFixed(3)}</div></div>
             </div>) : <p>No purchase is needed with the selected starting fuel.</p>}
           </div>
           <p className="fuel-note">{result.pricing_note}</p>

@@ -54,7 +54,7 @@ function App() {
         <div className="app-logo-mark">E</div>
         <div>
           <div className="app-logo-name">ETTO Trip Planner</div>
-          <div className="app-logo-sub">FMCSA HOS-Compliant Route &amp; ELD Logbook Generator · 70 hr / 8-day Cycle</div>
+          <div className="app-logo-sub">{mode === 'fuel' ? 'Cost-aware fuel stops for US road trips · 500-mile range · 10 MPG' : 'FMCSA HOS-Compliant Route & ELD Logbook Generator · 70 hr / 8-day Cycle'}</div>
         </div>
       </header>
 
