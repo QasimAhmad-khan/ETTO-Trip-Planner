@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 from functools import lru_cache
-from math import cos, radians
+from math import asin, cos, radians, sin, sqrt
 from pathlib import Path
 
 MAX_RANGE_MILES = 500.0
@@ -39,6 +39,16 @@ def load_stations():
         return json.load(source)
 
 
+def _geodesic_miles(start, end):
+    """Great-circle length of a route segment, used for route mile markers."""
+    lon1, lat1 = start
+    lon2, lat2 = end
+    lat1, lat2 = radians(lat1), radians(lat2)
+    half_lat = sin((lat2 - lat1) / 2) ** 2
+    half_lon = cos(lat1) * cos(lat2) * sin(radians(lon2 - lon1) / 2) ** 2
+    return 3958.7613 * 2 * asin(sqrt(min(1.0, half_lat + half_lon)))
+
+
 def project_stations(geometry, total_miles, stations=None):
     """Index route segments in 20-mile cells and find stations within 10 miles."""
     if len(geometry) < 2 or total_miles <= 0:
@@ -51,13 +61,14 @@ def project_stations(geometry, total_miles, stations=None):
     points = [(lon * x_scale, lat * y_scale) for lon, lat in geometry]
     segments = []
     cells = {}
-    length = 0.0
-    for (ax, ay), (bx, by) in zip(points, points[1:]):
+    road_length = 0.0
+    for position, ((ax, ay), (bx, by)) in enumerate(zip(points, points[1:])):
         dx, dy = bx - ax, by - ay
         seg_len = (dx * dx + dy * dy) ** 0.5
         if seg_len < 1e-9:
             continue
-        segment = (ax, ay, dx, dy, seg_len, length)
+        road_segment_length = _geodesic_miles(geometry[position], geometry[position + 1])
+        segment = (ax, ay, dx, dy, seg_len, road_segment_length, road_length)
         index = len(segments)
         segments.append(segment)
         for ix in range(int((min(ax, bx) - MAX_ROUTE_OFFSET_MILES) // GRID_MILES),
@@ -65,7 +76,7 @@ def project_stations(geometry, total_miles, stations=None):
             for iy in range(int((min(ay, by) - MAX_ROUTE_OFFSET_MILES) // GRID_MILES),
                             int((max(ay, by) + MAX_ROUTE_OFFSET_MILES) // GRID_MILES) + 1):
                 cells.setdefault((ix, iy), []).append(index)
-        length += seg_len
+        road_length += road_segment_length
     if not segments:
         raise NoFuelPlan("Route geometry has no usable length.")
 
@@ -77,12 +88,12 @@ def project_stations(geometry, total_miles, stations=None):
         best_distance_sq = MAX_ROUTE_OFFSET_MILES ** 2
         best_mile = None
         for index in nearby:
-            ax, ay, dx, dy, seg_len, before = segments[index]
+            ax, ay, dx, dy, seg_len, road_segment_length, before = segments[index]
             t = max(0.0, min(1.0, ((px - ax) * dx + (py - ay) * dy) / (seg_len * seg_len)))
             distance_sq = (px - ax - t * dx) ** 2 + (py - ay - t * dy) ** 2
             if distance_sq <= best_distance_sq:
                 best_distance_sq = distance_sq
-                best_mile = total_miles * (before + t * seg_len) / length
+                best_mile = total_miles * (before + t * road_segment_length) / road_length
         if best_mile is not None:
             candidates.append(Candidate(
                 str(station_id), name, address, city, state, Decimal(str(price)),

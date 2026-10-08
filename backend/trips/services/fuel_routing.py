@@ -16,6 +16,23 @@ class FuelLocationError(FuelRoutingError):
     pass
 
 
+def _matches_location_suffix(query, properties):
+    """Do not silently change an explicit state/country to a US namesake."""
+    if "," not in query:
+        return True
+    suffix = query.rsplit(",", 1)[1].strip().casefold()
+    if not suffix:
+        return True
+    matches = {"us", "usa", "united states", "united states of america"}
+    for key in ("country", "country_a", "region", "region_a", "localadmin"):
+        value = properties.get(key)
+        if value:
+            matches.add(str(value).strip().casefold())
+    label = properties.get("label", "")
+    matches.update(part.strip().casefold() for part in label.split(","))
+    return suffix in matches
+
+
 def _key(kind):
     return os.environ.get(f"ORS_{kind}_API_KEY") or os.environ.get("ORS_API_KEY")
 
@@ -42,7 +59,8 @@ def geocode_us(query):
     for feature in data.get("features", []):
         properties = feature.get("properties", {})
         coordinates = feature.get("geometry", {}).get("coordinates", [])
-        if str(properties.get("country_a", "")).upper() == "USA" and len(coordinates) >= 2:
+        if (str(properties.get("country_a", "")).upper() == "USA"
+                and len(coordinates) >= 2 and _matches_location_suffix(normalized, properties)):
             result = {"label": properties.get("label", normalized), "coordinates": coordinates[:2]}
             cache.set(cache_key, result, 86400)
             return result

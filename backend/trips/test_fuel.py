@@ -54,6 +54,14 @@ class OptimizerTests(SimpleTestCase):
         self.assertEqual([station.station_id for station in result], ["1"])
         self.assertAlmostEqual(result[0].mile, 26, delta=0.1)
 
+    def test_projection_uses_geographic_lengths_across_latitudes(self):
+        geometry = [[-100, 30], [-90, 30], [-90, 50], [-80, 50]]
+        station = ["1", "Latitude Stop", "A", "Town", "CO", 3.5, 50, -90]
+        result = project_stations(geometry, 1000, [station])
+        self.assertEqual(len(result), 1)
+        self.assertGreater(result[0].mile, 810)
+        self.assertLess(result[0].mile, 825)
+
 
 class FuelApiTests(SimpleTestCase):
     def setUp(self):
@@ -115,6 +123,25 @@ class ProviderCallTests(SimpleTestCase):
         second = geocode_us(" Austin, TX ")
         self.assertEqual(first, second)
         request.assert_called_once()
+
+    @patch("trips.services.fuel_routing._request")
+    def test_explicit_foreign_country_is_not_resolved_to_us_namesake(self, request):
+        request.return_value = {"features": [{
+            "properties": {"country_a": "USA", "country": "United States",
+                           "region": "Ohio", "region_a": "OH", "label": "Toronto, OH, USA"},
+            "geometry": {"coordinates": [-80.606, 40.457]},
+        }]}
+        with self.assertRaises(FuelLocationError):
+            geocode_us("Toronto, Canada")
+
+    @patch("trips.services.fuel_routing._request")
+    def test_explicit_us_state_must_match_result(self, request):
+        request.return_value = {"features": [{
+            "properties": {"country_a": "USA", "region_a": "OH", "label": "Toronto, OH, USA"},
+            "geometry": {"coordinates": [-80.606, 40.457]},
+        }]}
+        with self.assertRaises(FuelLocationError):
+            geocode_us("Toronto, ON")
 
     @patch("trips.services.fuel_routing._request")
     def test_directions_uses_one_route_call(self, request):
