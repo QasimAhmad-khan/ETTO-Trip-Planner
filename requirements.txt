@@ -1,9 +1,9 @@
 asgiref==3.11.1
 certifi==2026.5.20
 charset-normalizer==3.4.7
-Django==6.0.6
+Django==6.1.2
 django-cors-headers==4.9.0
-djangorestframework==3.17.1
+djangorestframework==3.18.3
 gunicorn==26.0.0
 idna==3.18
 packaging==26.2

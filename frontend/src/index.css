@@ -90,6 +90,28 @@ body {
   margin-top: 2px;
 }
 
+.feature-tabs { display: flex; gap: .5rem; margin: -1rem 0 1.5rem; border-bottom: 1px solid var(--color-hairline); }
+.feature-tabs button { border: 0; background: transparent; padding: .75rem 1rem; font: 600 var(--text-sm) var(--font-ui); color: var(--color-secondary); cursor: pointer; border-bottom: 3px solid transparent; }
+.feature-tabs button.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.feature-tabs button:hover { color: var(--color-primary); }
+.fuel-intro, .fuel-note { color: var(--color-secondary); font-size: var(--text-xs); }
+.fuel-note { margin-top: .75rem; }
+.fuel-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem; margin-bottom: 1.5rem; }
+.fuel-metric { padding: .9rem; display: flex; flex-direction: column; gap: .2rem; }
+.fuel-metric span { color: var(--color-secondary); font-size: var(--text-xs); }
+.fuel-metric strong { font-size: var(--text-lg); color: var(--color-primary); }
+.fuel-list { overflow: hidden; }
+.fuel-list > p { padding: 1rem; }
+.fuel-stop { display: flex; gap: .75rem; align-items: flex-start; padding: 1rem; border-bottom: 1px solid var(--color-hairline); }
+.fuel-stop:last-child { border-bottom: 0; }
+.fuel-stop-number { background: var(--color-primary); color: white; border-radius: 50%; width: 24px; height: 24px; flex: 0 0 24px; text-align: center; font-size: var(--text-xs); line-height: 24px; }
+.fuel-stop > div:nth-child(2) { flex: 1; min-width: 0; }
+.fuel-stop div div, .fuel-stop small { color: var(--color-secondary); font-size: var(--text-xs); }
+.fuel-stop-cost { text-align: right; white-space: nowrap; }
+.fuel-stop-cost strong { color: var(--color-primary); }
+.fuel-empty { min-height: 300px; display: grid; place-items: center; text-align: center; color: var(--color-secondary); }
+@media (max-width: 650px) { .fuel-metrics { grid-template-columns: 1fr; } .fuel-stop { flex-wrap: wrap; } .fuel-stop-cost { margin-left: 32px; text-align: left; } }
+
 /* ── Layout grid ────────────────────────────────────────────────────── */
 .layout-grid {
   display: grid;

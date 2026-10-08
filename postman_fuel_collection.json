@@ -1,0 +1,38 @@
+{
+  "info": {
+    "name": "ETTO Fuel Route Optimizer",
+    "description": "Spotter Labs fuel route assessment. Import this collection and run the live route request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{"key": "base_url", "value": "https://etto-trip-planner.vercel.app"}],
+  "item": [
+    {"name": "Health", "request": {"method": "GET", "url": "{{base_url}}/api/health"}},
+    {
+      "name": "Dallas to Denver fuel route",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"start\": \"Dallas, TX\",\n  \"finish\": \"Denver, CO\",\n  \"starting_fuel_gallons\": 50\n}"},
+        "url": "{{base_url}}/api/fuel/route"
+      }
+    },
+    {
+      "name": "Chicago to Los Angeles multiple fuel stops",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\n  \"start\": \"Chicago, IL\",\n  \"finish\": \"Los Angeles, CA\",\n  \"starting_fuel_gallons\": 50\n}"},
+        "url": "{{base_url}}/api/fuel/route"
+      }
+    },
+    {
+      "name": "Validation error: same location",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {"mode": "raw", "raw": "{\"start\":\"Dallas, TX\",\"finish\":\"Dallas, TX\"}"},
+        "url": "{{base_url}}/api/fuel/route"
+      }
+    }
+  ]
+}

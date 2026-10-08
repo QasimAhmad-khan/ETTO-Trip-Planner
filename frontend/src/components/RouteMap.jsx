@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -75,15 +75,7 @@ function formatDuration(hrs) {
 }
 
 export default function RouteMap({ route, stops }) {
-  const [allPoints, setAllPoints] = useState([]);
-
-  useEffect(() => {
-    if (route?.geometry) {
-      let pts = [];
-      route.geometry.forEach(geom => { pts = pts.concat(decodePolyline(geom)); });
-      setAllPoints(pts);
-    }
-  }, [route]);
+  const allPoints = useMemo(() => route?.geometry?.flatMap(decodePolyline) ?? [], [route]);
 
   const defaultCenter = [39.8283, -98.5795];
   const mappableStops = (stops || []).filter(s => s.lat != null && s.lng != null);
@@ -93,8 +85,9 @@ export default function RouteMap({ route, stops }) {
     <div className="map-wrap">
       <MapContainer center={defaultCenter} zoom={4} style={{ height: '100%', width: '100%' }}>
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='Map data: <a href="https://www.usgs.gov/">USGS</a>'
+          url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={16}
         />
 
         {boundsPoints.length > 0 && <BoundsFitter points={boundsPoints} />}

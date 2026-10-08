@@ -4,12 +4,14 @@ import TripSummary from './components/TripSummary'
 import RouteMap from './components/RouteMap'
 import LogSheetList from './components/LogSheetList'
 import { planTrip } from './lib/api'
+import FuelPlanner from './components/FuelPlanner'
 
 function App() {
   const [data, setData]               = useState(null);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState(null);
   const [initialLoading, setInitial]  = useState(true);
+  const [mode, setMode] = useState('trip');
 
   useEffect(() => {
     const t = setTimeout(() => setInitial(false), 1200);
@@ -56,7 +58,12 @@ function App() {
         </div>
       </header>
 
-      <div className="layout-grid">
+      <nav className="feature-tabs" aria-label="Planner features">
+        <button type="button" className={mode === 'trip' ? 'active' : ''} onClick={() => setMode('trip')}>HOS Trip Planner</button>
+        <button type="button" className={mode === 'fuel' ? 'active' : ''} onClick={() => setMode('fuel')}>Fuel Route Optimizer</button>
+      </nav>
+
+      {mode === 'fuel' ? <FuelPlanner /> : <div className="layout-grid">
         {/* ── Left sidebar ─────────────────────────────────────────── */}
         <div className="sidebar no-print">
           <TripForm onSubmit={handlePlanTrip} loading={loading} error={error} />
@@ -107,7 +114,7 @@ function App() {
             </div>
           )}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }
